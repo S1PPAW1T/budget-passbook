@@ -138,7 +138,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Tabs ── */}
-      <div style={{ display: 'flex', gap: 6, padding: '18px 20px 0' }}>
+      <div className="dash-tabs" style={{ display: 'flex', gap: 6 }}>
         {TABS.map((tab, i) => (
           <button
             key={tab.id}
@@ -165,11 +165,10 @@ export default function DashboardPage() {
       </div>
 
       {/* ── Panel ── */}
-      <div style={{
+      <div className="dash-panel" style={{
         background: 'var(--surface)',
         border: '1px solid var(--line)',
         borderRadius: activeTab === 'record' ? '0 12px 12px 12px' : '12px',
-        margin: '0 20px',
         padding: 22,
         position: 'relative',
       }}>

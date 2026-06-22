@@ -84,7 +84,7 @@ export default function SummaryTab({ month }: Props) {
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <div className="summary-grid">
         <DonutCard title="▲ สัดส่วนรายรับ" data={incomeData} palette={palette} />
         <DonutCard title="▼ สัดส่วนรายจ่าย" data={expenseData} palette={palette} />
       </div>

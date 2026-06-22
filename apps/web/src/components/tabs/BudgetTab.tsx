@@ -70,17 +70,9 @@ export default function BudgetTab({ month }: Props) {
         const pct = b.amount > 0 ? Math.min(100, (b.spent / b.amount) * 100) : 0;
         const over = b.amount > 0 && b.spent > b.amount;
         return (
-          <div key={b.categoryId} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--line)' }}>
-            <div style={{ fontSize: 18, width: 30, textAlign: 'center' }}>{b.category.icon}</div>
-            <div style={{ flex: '0 0 110px', fontSize: 13.5, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {b.category.name}
-            </div>
-            <div className="budget-bar-track">
-              <div className={`budget-bar-fill ${over ? 'over' : ''}`} style={{ width: `${pct}%` }} />
-            </div>
-            <div style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 11.5, color: over ? 'var(--expense)' : 'var(--ink-soft)', width: 150, textAlign: 'right', flexShrink: 0 }}>
-              {fmtTHB(b.spent)} / {fmtTHB(b.amount)}
-            </div>
+          <div key={b.categoryId} className="budget-row">
+            <div className="budget-row-icon">{b.category.icon}</div>
+            <div className="budget-row-name">{b.category.name}</div>
             <input
               type="number"
               min="0"
@@ -90,22 +82,21 @@ export default function BudgetTab({ month }: Props) {
                 const v = parseFloat(e.target.value) || 0;
                 if (v !== b.amount) updateMutation.mutate({ categoryId: b.categoryId, amount: v });
               }}
-              style={{
-                width: 90, padding: '6px 8px', border: '1px solid var(--line)', borderRadius: 6,
-                fontFamily: 'IBM Plex Mono, monospace', fontSize: 12.5, textAlign: 'right',
-                background: 'var(--surface)', color: 'var(--ink)', flexShrink: 0,
-              }}
+              className="budget-row-input"
             />
             <button
               onClick={() => setPendingDelete({ id: b.category.id, name: b.category.name, icon: b.category.icon })}
               title="ลบหมวดหมู่"
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: 'var(--ink-soft)', fontSize: 15, padding: '2px 4px', flexShrink: 0,
-              }}
+              className="budget-row-delete"
             >
               🗑
             </button>
+            <div className="budget-row-bar">
+              <div className={`budget-bar-fill ${over ? 'over' : ''}`} style={{ width: `${pct}%` }} />
+            </div>
+            <div className="budget-row-amounts" style={{ color: over ? 'var(--expense)' : 'var(--ink-soft)' }}>
+              {fmtTHB(b.spent)} / {fmtTHB(b.amount)}
+            </div>
           </div>
         );
       })}
