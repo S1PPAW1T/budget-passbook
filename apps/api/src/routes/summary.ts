@@ -8,15 +8,21 @@ router.use(requireAuth);
 
 router.get('/total', async (req: AuthRequest, res) => {
   try {
-    const rows = await prisma.transaction.findMany({
+    const grouped = await prisma.transaction.groupBy({
+      by: ['categoryId'],
       where: { userId: req.userId },
-      include: { category: { select: { type: true } } },
+      _sum: { amount: true },
     });
+    const categories = await prisma.category.findMany({
+      where: { id: { in: grouped.map((r) => r.categoryId) } },
+      select: { id: true, type: true },
+    });
+    const typeMap = new Map(categories.map((c) => [c.id, c.type]));
     let totalIncome = 0;
     let totalExpense = 0;
-    for (const t of rows) {
-      const amt = Number(t.amount);
-      if (t.category.type === 'INCOME') totalIncome += amt;
+    for (const r of grouped) {
+      const amt = Number(r._sum.amount ?? 0);
+      if (typeMap.get(r.categoryId) === 'INCOME') totalIncome += amt;
       else totalExpense += amt;
     }
     res.json({ totalIncome, totalExpense, net: totalIncome - totalExpense });
@@ -29,37 +35,39 @@ router.get('/total', async (req: AuthRequest, res) => {
 router.get('/trend', async (req: AuthRequest, res) => {
   try {
     const months = Math.min(parseInt((req.query.months as string) || '12', 10), 36);
-    const results = [];
-
     const now = new Date();
+
+    const monthLabels: string[] = [];
     for (let i = months - 1; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-      const start = new Date(d.getFullYear(), d.getMonth(), 1);
-      const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-
-      const rows = await prisma.transaction.groupBy({
-        by: ['categoryId'],
-        where: { userId: req.userId, date: { gte: start, lte: end } },
-        _sum: { amount: true },
-      });
-
-      const categories = await prisma.category.findMany({
-        where: { id: { in: rows.map((r) => r.categoryId) } },
-        select: { id: true, type: true },
-      });
-
-      const catTypeMap = new Map(categories.map((c) => [c.id, c.type]));
-      let income = 0;
-      let expense = 0;
-      for (const row of rows) {
-        const type = catTypeMap.get(row.categoryId);
-        const amt = Number(row._sum.amount ?? 0);
-        if (type === 'INCOME') income += amt;
-        else if (type === 'EXPENSE') expense += amt;
-      }
-      results.push({ month: ym, income, expense, net: income - expense });
+      monthLabels.push(d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'));
     }
+
+    const rangeStart = new Date(now.getFullYear(), now.getMonth() - months + 1, 1);
+    const rangeEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+    const transactions = await prisma.transaction.findMany({
+      where: { userId: req.userId, date: { gte: rangeStart, lte: rangeEnd } },
+      select: { amount: true, date: true, category: { select: { type: true } } },
+    });
+
+    const monthMap = new Map<string, { income: number; expense: number }>();
+    for (const label of monthLabels) monthMap.set(label, { income: 0, expense: 0 });
+
+    for (const t of transactions) {
+      const d = new Date(t.date);
+      const ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+      const entry = monthMap.get(ym);
+      if (!entry) continue;
+      const amt = Number(t.amount);
+      if (t.category.type === 'INCOME') entry.income += amt;
+      else entry.expense += amt;
+    }
+
+    const results = monthLabels.map((month) => {
+      const { income, expense } = monthMap.get(month)!;
+      return { month, income, expense, net: income - expense };
+    });
 
     res.json(results);
   } catch (err) {

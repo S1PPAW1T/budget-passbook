@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { SummaryMonth } from '@budget-passbook/shared';
 import { api } from '../lib/api';
@@ -22,6 +22,13 @@ export default function DashboardPage() {
   const { theme, toggleTheme } = useTheme();
   const [viewMonth, setViewMonth] = useState(currentMonth);
   const [activeTab, setActiveTab] = useState<TabId>('record');
+
+  useEffect(() => {
+    const BASE = (import.meta.env.VITE_API_URL ?? '') + '/api';
+    const ping = () => fetch(`${BASE}/health`).catch(() => {});
+    const id = setInterval(ping, 1000 * 60 * 10);
+    return () => clearInterval(id);
+  }, []);
 
   const { data: summary } = useQuery<SummaryMonth>({
     queryKey: ['summary', viewMonth],
