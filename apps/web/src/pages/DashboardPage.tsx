@@ -28,9 +28,15 @@ export default function DashboardPage() {
     queryFn: () => api.summary.month(viewMonth),
   });
 
+  const { data: totalSavings } = useQuery({
+    queryKey: ['summary', 'total'],
+    queryFn: () => api.summary.total(),
+  });
+
   const totalIn = summary?.totalIncome ?? 0;
   const totalOut = summary?.totalExpense ?? 0;
   const net = summary?.net ?? 0;
+  const accumulated = totalSavings?.net ?? 0;
 
   return (
     <div style={{ maxWidth: 880, margin: '0 auto', paddingBottom: 48 }}>
@@ -92,6 +98,12 @@ export default function DashboardPage() {
         <div style={{ display: 'flex', gap: 22, marginTop: 14, fontFamily: 'IBM Plex Mono, monospace', fontSize: 13 }}>
           <span style={{ color: 'var(--income)' }}>▲ รับ {fmtTHB(totalIn)}</span>
           <span style={{ color: 'var(--expense)' }}>▼ จ่าย {fmtTHB(totalOut)}</span>
+        </div>
+        <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,.12)', display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 12, opacity: 0.7 }}>เงินเก็บสะสมทั้งหมด</span>
+          <span style={{ fontFamily: 'IBM Plex Mono, monospace', fontWeight: 700, fontSize: 22, letterSpacing: '.5px', color: accumulated < 0 ? 'var(--expense)' : 'var(--gold)' }}>
+            {accumulated < 0 ? '-' : ''}{fmtTHB(Math.abs(accumulated))}
+          </span>
         </div>
       </div>
 

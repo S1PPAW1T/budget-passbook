@@ -58,7 +58,6 @@ export default function BudgetTab({ month }: Props) {
       {budgets.map((b: BudgetWithSpent) => {
         const pct = b.amount > 0 ? Math.min(100, (b.spent / b.amount) * 100) : 0;
         const over = b.amount > 0 && b.spent > b.amount;
-        const isOwned = b.category.userId !== null;
         return (
           <div key={b.categoryId} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderBottom: '1px solid var(--line)' }}>
             <div style={{ fontSize: 18, width: 30, textAlign: 'center' }}>{b.category.icon}</div>
@@ -86,22 +85,20 @@ export default function BudgetTab({ month }: Props) {
                 background: 'var(--surface)', color: 'var(--ink)', flexShrink: 0,
               }}
             />
-            {isOwned && (
-              <button
-                onClick={() => {
-                  if (window.confirm(`ลบหมวดหมู่ "${b.category.name}" ?`)) {
-                    deleteMutation.mutate(b.category.id);
-                  }
-                }}
-                title="ลบหมวดหมู่"
-                style={{
-                  background: 'none', border: 'none', cursor: 'pointer',
-                  color: 'var(--ink-soft)', fontSize: 15, padding: '2px 4px', flexShrink: 0,
-                }}
-              >
-                🗑
-              </button>
-            )}
+            <button
+              onClick={() => {
+                if (window.confirm(`ลบหมวดหมู่ "${b.category.name}" ?`)) {
+                  deleteMutation.mutate(b.category.id);
+                }
+              }}
+              title="ลบหมวดหมู่"
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--ink-soft)', fontSize: 15, padding: '2px 4px', flexShrink: 0,
+              }}
+            >
+              🗑
+            </button>
           </div>
         );
       })}

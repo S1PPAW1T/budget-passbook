@@ -37,11 +37,9 @@ router.post('/', validate(CategoryCreateSchema), async (req: AuthRequest, res) =
 router.delete('/:id', async (req: AuthRequest, res) => {
   try {
     const { id } = req.params;
-    const category = await prisma.category.findFirst({
-      where: { id, userId: req.userId },
-    });
+    const category = await prisma.category.findUnique({ where: { id } });
     if (!category) {
-      res.status(404).json({ error: 'ไม่พบหมวดหมู่หรือไม่มีสิทธิ์ลบ' });
+      res.status(404).json({ error: 'ไม่พบหมวดหมู่' });
       return;
     }
     const txCount = await prisma.transaction.count({ where: { categoryId: id } });

@@ -6,6 +6,26 @@ const router = Router();
 
 router.use(requireAuth);
 
+router.get('/total', async (req: AuthRequest, res) => {
+  try {
+    const rows = await prisma.transaction.findMany({
+      where: { userId: req.userId },
+      include: { category: { select: { type: true } } },
+    });
+    let totalIncome = 0;
+    let totalExpense = 0;
+    for (const t of rows) {
+      const amt = Number(t.amount);
+      if (t.category.type === 'INCOME') totalIncome += amt;
+      else totalExpense += amt;
+    }
+    res.json({ totalIncome, totalExpense, net: totalIncome - totalExpense });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด' });
+  }
+});
+
 router.get('/trend', async (req: AuthRequest, res) => {
   try {
     const months = Math.min(parseInt((req.query.months as string) || '12', 10), 36);

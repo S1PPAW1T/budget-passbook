@@ -64,5 +64,7 @@ export const api = {
       request<SummaryMonth>(`/summary${month ? `?month=${month}` : ''}`),
     trend: (months = 12) =>
       request<TrendPoint[]>(`/summary/trend?months=${months}`),
+    total: () =>
+      request<{ totalIncome: number; totalExpense: number; net: number }>('/summary/total'),
   },
 };
