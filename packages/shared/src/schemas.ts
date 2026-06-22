@@ -29,8 +29,15 @@ export const MonthQuerySchema = z.object({
   month: z.string().regex(/^\d{4}-\d{2}$/).optional(),
 });
 
+export const CategoryCreateSchema = z.object({
+  type: z.enum(['INCOME', 'EXPENSE']),
+  name: z.string().min(1, 'กรุณาระบุชื่อ').max(50),
+  icon: z.string().min(1, 'กรุณาระบุไอคอน').max(10),
+});
+
 export type RegisterInput = z.infer<typeof RegisterSchema>;
 export type LoginInput = z.infer<typeof LoginSchema>;
 export type TransactionCreateInput = z.infer<typeof TransactionCreateSchema>;
 export type TransactionUpdateInput = z.infer<typeof TransactionUpdateSchema>;
 export type BudgetUpsertInput = z.infer<typeof BudgetUpsertSchema>;
+export type CategoryCreateInput = z.infer<typeof CategoryCreateSchema>;

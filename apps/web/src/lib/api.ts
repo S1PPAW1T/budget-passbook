@@ -1,6 +1,7 @@
 import type {
   AuthResponse, User, Category, Transaction, BudgetWithSpent,
   SummaryMonth, TrendPoint, TransactionCreateInput, TransactionUpdateInput,
+  CategoryCreateInput,
 } from '@budget-passbook/shared';
 
 const BASE = (import.meta.env.VITE_API_URL ?? '') + '/api';
@@ -37,6 +38,10 @@ export const api = {
   },
   categories: {
     list: () => request<Category[]>('/categories'),
+    create: (data: CategoryCreateInput) =>
+      request<Category>('/categories', { method: 'POST', body: JSON.stringify(data) }),
+    delete: (id: string) =>
+      request<void>(`/categories/${id}`, { method: 'DELETE' }),
   },
   transactions: {
     list: (month?: string) =>
