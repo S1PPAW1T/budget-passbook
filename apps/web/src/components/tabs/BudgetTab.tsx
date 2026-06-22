@@ -105,6 +105,36 @@ export default function BudgetTab({ month }: Props) {
         );
       })}
 
+      {budgets.length > 0 && (() => {
+        const totalBudget = budgets.reduce((s: number, b: BudgetWithSpent) => s + b.amount, 0);
+        const totalSpent  = budgets.reduce((s: number, b: BudgetWithSpent) => s + b.spent,  0);
+        const pct  = totalBudget > 0 ? Math.min(100, (totalSpent / totalBudget) * 100) : 0;
+        const over = totalBudget > 0 && totalSpent > totalBudget;
+        return (
+          <div style={{ marginTop: 6, padding: '12px 0 4px', borderTop: '2px solid var(--line)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, flex: '0 0 140px' }}>รวมทั้งหมด</div>
+              <div className="budget-bar-track" style={{ flex: 1, minWidth: 80, height: 10 }}>
+                <div className={`budget-bar-fill ${over ? 'over' : ''}`} style={{ width: `${pct}%` }} />
+              </div>
+              <div style={{ fontFamily: 'IBM Plex Mono, monospace', fontSize: 12, fontWeight: 700, color: over ? 'var(--expense)' : 'var(--ink)', width: 178, textAlign: 'right', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                {fmtTHB(totalSpent)} / {fmtTHB(totalBudget)}
+              </div>
+            </div>
+            {over && (
+              <div style={{ fontSize: 11.5, color: 'var(--expense)', fontFamily: 'IBM Plex Mono, monospace', textAlign: 'right', marginTop: 4 }}>
+                เกินงบ {fmtTHB(totalSpent - totalBudget)}
+              </div>
+            )}
+            {!over && totalBudget > 0 && (
+              <div style={{ fontSize: 11.5, color: 'var(--ink-soft)', fontFamily: 'IBM Plex Mono, monospace', textAlign: 'right', marginTop: 4 }}>
+                เหลือ {fmtTHB(totalBudget - totalSpent)}
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
       <div style={{ marginTop: 16 }}>
         {!showAdd ? (
           <button
