@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "strict": true,
+    "skipLibCheck": true,
+    "outDir": "./dist",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "@budget-passbook/shared": ["../../packages/shared/src/index.ts"]
+    }
+  },
+  "include": ["src", "prisma"],
+  "exclude": ["node_modules", "dist"]
+}

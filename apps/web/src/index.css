@@ -1,0 +1,146 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── CSS Variables ──────────────────────────────────────── */
+:root {
+  --paper: #F7F2E7;
+  --paper-deep: #EDE6D3;
+  --line: #C8BAA0;
+  --ink: #1F3A5C;
+  --ink-soft: #7A8FA6;
+  --income: #2F6F4F;
+  --income-soft: rgba(47,111,79,0.12);
+  --expense: #B0463C;
+  --expense-soft: rgba(176,70,60,0.12);
+  --gold: #B8860B;
+  --gold-soft: rgba(184,134,11,0.12);
+  --surface: #FDFAF2;
+}
+
+.dark {
+  --paper: #0B0F0D;
+  --paper-deep: #161D19;
+  --line: #2B3A30;
+  --ink: #DDF2E2;
+  --ink-soft: #7FA08C;
+  --income: #46DE82;
+  --income-soft: rgba(70,222,130,0.12);
+  --expense: #FF7A59;
+  --expense-soft: rgba(255,122,89,0.12);
+  --gold: #D9B23C;
+  --gold-soft: rgba(217,178,60,0.12);
+  --surface: #121815;
+}
+
+/* ─── Base ───────────────────────────────────────────────── */
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+.app-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+/* ─── Passbook Cover ─────────────────────────────────────── */
+.pb-cover {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-top: none;
+  border-radius: 0 0 18px 18px;
+  position: relative;
+  overflow: hidden;
+  padding: 28px 28px 34px;
+}
+
+.dark .pb-cover {
+  background: radial-gradient(120% 140% at 15% -10%, rgba(70,222,130,0.16) 0%, transparent 45%),
+              linear-gradient(180deg, #0A0E0B 0%, #131C16 100%);
+}
+
+.light .pb-cover,
+html:not(.dark) .pb-cover {
+  background: radial-gradient(120% 140% at 15% -10%, rgba(47,111,79,0.08) 0%, transparent 45%),
+              linear-gradient(180deg, #FDFAF2 0%, #F4EDD8 100%);
+}
+
+.pb-cover::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: 0; height: 10px;
+  background-image: radial-gradient(circle, var(--paper) 4px, transparent 4.5px);
+  background-size: 18px 10px;
+  background-position: 4px 0;
+  opacity: 0.6;
+}
+
+/* ─── Stamp ──────────────────────────────────────────────── */
+.stamp {
+  flex: 0 0 auto;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  border: 2px dashed;
+  transform: rotate(-6deg);
+}
+.stamp.income { border-color: var(--income); color: var(--income); background: var(--income-soft); }
+.stamp.expense { border-color: var(--expense); color: var(--expense); background: var(--expense-soft); }
+
+/* ─── Budget bar ─────────────────────────────────────────── */
+.budget-bar-track {
+  flex: 1;
+  height: 10px;
+  background: var(--paper-deep);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.budget-bar-fill {
+  height: 100%;
+  border-radius: 6px;
+  background: var(--gold);
+  transition: width 0.4s ease;
+}
+.budget-bar-fill.over { background: var(--expense); }
+
+/* ─── Auth card ──────────────────────────────────────────── */
+.auth-card {
+  max-width: 420px;
+  margin: 60px auto;
+  padding: 36px 32px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+/* ─── Form inputs ────────────────────────────────────────── */
+.field-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-family: 'IBM Plex Sans Thai', sans-serif;
+  font-size: 14px;
+  background: var(--paper);
+  color: var(--ink);
+  outline: none;
+}
+.field-input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+
+/* ─── Scrollbar ──────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
