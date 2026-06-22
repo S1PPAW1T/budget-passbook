@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import bcrypt from 'bcrypt';
-import { RegisterSchema, LoginSchema } from '@budget-passbook/shared';
+import { RegisterSchema, LoginSchema, ChangePasswordSchema } from '@budget-passbook/shared';
 import { prisma } from '../lib/prisma';
 import { signToken } from '../lib/jwt';
 import { validate } from '../middleware/validate';
@@ -64,6 +64,28 @@ router.get('/me', requireAuth, async (req: AuthRequest, res) => {
       return;
     }
     res.json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'เกิดข้อผิดพลาด' });
+  }
+});
+
+router.put('/password', requireAuth, validate(ChangePasswordSchema), async (req: AuthRequest, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) {
+      res.status(404).json({ error: 'ไม่พบผู้ใช้' });
+      return;
+    }
+    const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!valid) {
+      res.status(401).json({ error: 'รหัสผ่านปัจจุบันไม่ถูกต้อง' });
+      return;
+    }
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({ where: { id: req.userId }, data: { passwordHash } });
+    res.json({ message: 'เปลี่ยนรหัสผ่านสำเร็จ' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'เกิดข้อผิดพลาด' });

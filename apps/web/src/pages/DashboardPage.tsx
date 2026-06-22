@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import type { SummaryMonth } from '@budget-passbook/shared';
 import { api } from '../lib/api';
 import { fmtTHB, monthLabel, shiftMonth, currentMonth } from '../lib/format';
@@ -22,6 +22,20 @@ export default function DashboardPage() {
   const { theme, toggleTheme } = useTheme();
   const [viewMonth, setViewMonth] = useState(currentMonth);
   const [activeTab, setActiveTab] = useState<TabId>('record');
+  const [showChangePw, setShowChangePw] = useState(false);
+  const [currentPw, setCurrentPw] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [pwSuccess, setPwSuccess] = useState(false);
+
+  const changePwMutation = useMutation({
+    mutationFn: () => api.auth.changePassword({ currentPassword: currentPw, newPassword: newPw }),
+    onSuccess: () => {
+      setPwSuccess(true);
+      setCurrentPw(''); setNewPw(''); setConfirmPw('');
+      setTimeout(() => { setShowChangePw(false); setPwSuccess(false); }, 1500);
+    },
+  });
 
   useEffect(() => {
     const BASE = (import.meta.env.VITE_API_URL ?? '') + '/api';
@@ -82,6 +96,15 @@ export default function DashboardPage() {
               style={{ background: 'rgba(255,255,255,.08)', border: '1px solid var(--line)', color: 'var(--ink)', width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', fontSize: 15 }}
             >
               {theme === 'dark' ? '☀️' : '🌙'}
+            </button>
+
+            {/* Change password */}
+            <button
+              onClick={() => setShowChangePw(true)}
+              title="เปลี่ยนรหัสผ่าน"
+              style={{ background: 'rgba(255,255,255,.08)', border: '1px solid var(--line)', color: 'var(--ink-soft)', width: 32, height: 32, borderRadius: '50%', cursor: 'pointer', fontSize: 15 }}
+            >
+              🔑
             </button>
 
             {/* Logout */}
@@ -163,6 +186,70 @@ export default function DashboardPage() {
         {activeTab === 'budget' && <BudgetTab month={viewMonth} />}
         {activeTab === 'summary' && <SummaryTab month={viewMonth} />}
       </div>
+
+      {/* Change password modal */}
+      {showChangePw && (
+        <div
+          onClick={() => { setShowChangePw(false); setCurrentPw(''); setNewPw(''); setConfirmPw(''); changePwMutation.reset(); setPwSuccess(false); }}
+          style={{ position: 'fixed', inset: 0, zIndex: 100, background: 'rgba(0,0,0,.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 16, padding: '28px 28px 22px', maxWidth: 360, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,.35)' }}
+          >
+            <div style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 18, marginBottom: 20 }}>เปลี่ยนรหัสผ่าน</div>
+
+            {pwSuccess ? (
+              <div style={{ textAlign: 'center', padding: '20px 0', color: 'var(--income)', fontWeight: 600, fontSize: 15 }}>
+                ✓ เปลี่ยนรหัสผ่านสำเร็จ
+              </div>
+            ) : (
+              <>
+                {[
+                  { label: 'รหัสผ่านปัจจุบัน', value: currentPw, set: setCurrentPw },
+                  { label: 'รหัสผ่านใหม่ (อย่างน้อย 8 ตัว)', value: newPw, set: setNewPw },
+                  { label: 'ยืนยันรหัสผ่านใหม่', value: confirmPw, set: setConfirmPw },
+                ].map(({ label, value, set }) => (
+                  <div key={label} style={{ marginBottom: 14 }}>
+                    <div style={{ fontSize: 12, color: 'var(--ink-soft)', marginBottom: 5 }}>{label}</div>
+                    <input
+                      type="password"
+                      value={value}
+                      onChange={(e) => set(e.target.value)}
+                      style={{ width: '100%', padding: '8px 10px', border: '1px solid var(--line)', borderRadius: 8, background: 'var(--surface)', color: 'var(--ink)', fontSize: 14, boxSizing: 'border-box' }}
+                    />
+                  </div>
+                ))}
+
+                {confirmPw && newPw !== confirmPw && (
+                  <div style={{ color: 'var(--expense)', fontSize: 12, marginBottom: 10 }}>รหัสผ่านใหม่ไม่ตรงกัน</div>
+                )}
+                {changePwMutation.isError && (
+                  <div style={{ color: 'var(--expense)', fontSize: 12, marginBottom: 10 }}>
+                    {(changePwMutation.error as Error).message}
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', gap: 10, marginTop: 6 }}>
+                  <button
+                    onClick={() => { setShowChangePw(false); setCurrentPw(''); setNewPw(''); setConfirmPw(''); changePwMutation.reset(); }}
+                    style={{ flex: 1, padding: '9px 0', border: '1px solid var(--line)', borderRadius: 8, background: 'none', color: 'var(--ink-soft)', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}
+                  >
+                    ยกเลิก
+                  </button>
+                  <button
+                    onClick={() => { if (newPw === confirmPw && currentPw && newPw.length >= 8) changePwMutation.mutate(); }}
+                    disabled={!currentPw || !newPw || newPw !== confirmPw || newPw.length < 8 || changePwMutation.isPending}
+                    style={{ flex: 1, padding: '9px 0', border: 'none', borderRadius: 8, background: 'var(--ink)', color: 'var(--bg)', cursor: 'pointer', fontSize: 13, fontWeight: 600, opacity: (!currentPw || !newPw || newPw !== confirmPw || newPw.length < 8 || changePwMutation.isPending) ? 0.5 : 1 }}
+                  >
+                    {changePwMutation.isPending ? 'กำลังบันทึก...' : 'บันทึก'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

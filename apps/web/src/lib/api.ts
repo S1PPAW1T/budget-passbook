@@ -1,7 +1,7 @@
 import type {
   AuthResponse, User, Category, Transaction, BudgetWithSpent,
   SummaryMonth, TrendPoint, TransactionCreateInput, TransactionUpdateInput,
-  CategoryCreateInput,
+  CategoryCreateInput, ChangePasswordInput,
 } from '@budget-passbook/shared';
 
 const BASE = (import.meta.env.VITE_API_URL ?? '') + '/api';
@@ -35,6 +35,8 @@ export const api = {
     login: (data: { email: string; password: string }) =>
       request<AuthResponse>('/auth/login', { method: 'POST', body: JSON.stringify(data) }),
     me: () => request<User>('/auth/me'),
+    changePassword: (data: ChangePasswordInput) =>
+      request<{ message: string }>('/auth/password', { method: 'PUT', body: JSON.stringify(data) }),
   },
   categories: {
     list: () => request<Category[]>('/categories'),

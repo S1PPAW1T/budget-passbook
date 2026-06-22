@@ -29,6 +29,13 @@ export const MonthQuerySchema = z.object({
   month: z.string().regex(/^\d{4}-\d{2}$/).optional(),
 });
 
+export const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'กรุณาระบุรหัสผ่านปัจจุบัน'),
+  newPassword: z.string().min(8, 'รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร'),
+});
+
+export type ChangePasswordInput = z.infer<typeof ChangePasswordSchema>;
+
 export const CategoryCreateSchema = z.object({
   type: z.enum(['INCOME', 'EXPENSE']),
   name: z.string().min(1, 'กรุณาระบุชื่อ').max(50),
