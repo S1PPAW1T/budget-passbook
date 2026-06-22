@@ -8,11 +8,18 @@ interface Props {
   month: string;
 }
 
+interface PendingDelete {
+  id: string;
+  name: string;
+  icon: string;
+}
+
 export default function BudgetTab({ month }: Props) {
   const qc = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
   const [newIcon, setNewIcon] = useState('📦');
   const [newName, setNewName] = useState('');
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
 
   const { data: budgets = [], isLoading } = useQuery({
     queryKey: ['budgets', month],
@@ -38,7 +45,11 @@ export default function BudgetTab({ month }: Props) {
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.categories.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['budgets', month] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['budgets', month] });
+      setPendingDelete(null);
+    },
+    onError: () => setPendingDelete(null),
   });
 
   if (isLoading) {
@@ -86,11 +97,7 @@ export default function BudgetTab({ month }: Props) {
               }}
             />
             <button
-              onClick={() => {
-                if (window.confirm(`ลบหมวดหมู่ "${b.category.name}" ?`)) {
-                  deleteMutation.mutate(b.category.id);
-                }
-              }}
+              onClick={() => setPendingDelete({ id: b.category.id, name: b.category.name, icon: b.category.icon })}
               title="ลบหมวดหมู่"
               style={{
                 background: 'none', border: 'none', cursor: 'pointer',
@@ -167,9 +174,64 @@ export default function BudgetTab({ month }: Props) {
           {(createMutation.error as Error).message}
         </div>
       )}
-      {deleteMutation.isError && (
-        <div style={{ color: 'var(--expense)', fontSize: 12, marginTop: 6 }}>
-          {(deleteMutation.error as Error).message}
+
+      {/* Delete confirm modal */}
+      {pendingDelete && (
+        <div
+          onClick={() => setPendingDelete(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 100,
+            background: 'rgba(0,0,0,.45)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'var(--surface)', border: '1px solid var(--line)',
+              borderRadius: 16, padding: '28px 28px 22px', maxWidth: 340, width: '100%',
+              boxShadow: '0 20px 60px rgba(0,0,0,.35)',
+            }}
+          >
+            <div style={{ fontSize: 36, textAlign: 'center', marginBottom: 12 }}>
+              {pendingDelete.icon}
+            </div>
+            <div style={{ fontFamily: 'Fraunces, serif', fontWeight: 600, fontSize: 17, textAlign: 'center', marginBottom: 8 }}>
+              ลบหมวดหมู่
+            </div>
+            <div style={{ fontSize: 13, color: 'var(--ink-soft)', textAlign: 'center', marginBottom: 24, lineHeight: 1.6 }}>
+              ต้องการลบ <strong style={{ color: 'var(--ink)' }}>"{pendingDelete.name}"</strong> ใช่ไหม?
+              <br />หากมีรายการผูกอยู่จะลบไม่ได้
+            </div>
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                onClick={() => setPendingDelete(null)}
+                style={{
+                  flex: 1, padding: '9px 0', border: '1px solid var(--line)', borderRadius: 8,
+                  background: 'none', color: 'var(--ink-soft)', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                }}
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={() => deleteMutation.mutate(pendingDelete.id)}
+                disabled={deleteMutation.isPending}
+                style={{
+                  flex: 1, padding: '9px 0', border: 'none', borderRadius: 8,
+                  background: 'var(--expense)', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600,
+                  opacity: deleteMutation.isPending ? 0.6 : 1,
+                }}
+              >
+                {deleteMutation.isPending ? 'กำลังลบ...' : 'ลบ'}
+              </button>
+            </div>
+            {deleteMutation.isError && (
+              <div style={{ color: 'var(--expense)', fontSize: 12, marginTop: 10, textAlign: 'center' }}>
+                {(deleteMutation.error as Error).message}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>
