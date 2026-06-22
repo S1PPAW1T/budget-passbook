@@ -23,14 +23,15 @@ const DEFAULT_CATEGORIES = [
 ];
 
 async function main() {
+  const existing = await prisma.category.count({ where: { userId: null } });
+  if (existing > 0) {
+    console.log('Default categories already exist, skipping seed.');
+    return;
+  }
   console.log('Seeding default categories...');
   for (const cat of DEFAULT_CATEGORIES) {
-    await prisma.category.upsert({
-      where: {
-        id: `default-${cat.type.toLowerCase()}-${cat.sortOrder}`,
-      },
-      update: {},
-      create: {
+    await prisma.category.create({
+      data: {
         id: `default-${cat.type.toLowerCase()}-${cat.sortOrder}`,
         userId: null,
         ...cat,
