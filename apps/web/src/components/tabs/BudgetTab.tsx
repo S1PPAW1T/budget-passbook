@@ -73,17 +73,20 @@ export default function BudgetTab({ month }: Props) {
           <div key={b.categoryId} className="budget-row">
             <div className="budget-row-icon">{b.category.icon}</div>
             <div className="budget-row-name">{b.category.name}</div>
-            <input
-              type="number"
-              min="0"
-              step="100"
-              defaultValue={b.amount}
-              onBlur={(e) => {
-                const v = parseFloat(e.target.value) || 0;
-                if (v !== b.amount) updateMutation.mutate({ categoryId: b.categoryId, amount: v });
-              }}
-              className="budget-row-input"
-            />
+            <div className="budget-row-input-wrap">
+              <span className="budget-row-input-label">งบ</span>
+              <input
+                type="number"
+                min="0"
+                step="100"
+                defaultValue={b.amount}
+                onBlur={(e) => {
+                  const v = parseFloat(e.target.value) || 0;
+                  if (v !== b.amount) updateMutation.mutate({ categoryId: b.categoryId, amount: v });
+                }}
+                className="budget-row-input"
+              />
+            </div>
             <button
               onClick={() => setPendingDelete({ id: b.category.id, name: b.category.name, icon: b.category.icon })}
               title="ลบหมวดหมู่"
