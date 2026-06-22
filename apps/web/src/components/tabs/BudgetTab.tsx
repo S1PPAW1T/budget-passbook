@@ -47,6 +47,7 @@ export default function BudgetTab({ month }: Props) {
     mutationFn: (id: string) => api.categories.delete(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['budgets', month] });
+      qc.invalidateQueries({ queryKey: ['categories'] });
       setPendingDelete(null);
     },
     onError: () => setPendingDelete(null),
